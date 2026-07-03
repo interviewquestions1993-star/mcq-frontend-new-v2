@@ -1,0 +1,106 @@
+<div class="quiz-container" *ngIf="!(isLoading$ | async)">
+  <div class="quiz-header">
+    <div class="topic-title">
+      <h1>{{ topic }}</h1>
+      <span class="difficulty-badge" *ngIf="currentQuestion">{{ currentQuestion.difficulty }}</span>
+    </div>
+    <div class="progress-container">
+      <div class="progress-stats">
+        <span>Question {{ currentIndex + 1 }} of {{ questions.length }}</span>
+        <span>{{ progress | number:'1.0-0' }}%</span>
+      </div>
+      <mat-progress-bar mode="determinate" [value]="progress"></mat-progress-bar>
+    </div>
+  </div>
+
+  <mat-card class="question-card" *ngIf="currentQuestion">
+    <mat-card-header style="display: block; margin-bottom: 15px;">
+      <div class="question-meta" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+        <span class="marks-badge">{{ currentQuestion.marks }} Marks</span>
+        <span class="word-count" *ngIf="currentQuestion.expected_word_count">
+          Target: {{ currentQuestion.expected_word_count.min }}-{{ currentQuestion.expected_word_count.max }} words
+        </span>
+      </div>
+    </mat-card-header>
+    
+    <mat-card-content>
+      <h2 class="question-text">{{ currentQuestion.question }}</h2>
+      
+      <div class="answer-section">
+        <textarea 
+          [(ngModel)]="userAnswers[currentIndex]" 
+          placeholder="Type your answer here..."
+          [disabled]="isAnswerSubmitted[currentIndex]"
+          rows="6"
+          class="answer-input">
+        </textarea>
+      </div>
+
+      <div class="evaluation-section" *ngIf="isAnswerSubmitted[currentIndex] && evaluationResults[currentIndex]">
+        <div class="feedback-card" [ngClass]="{'high-score': evaluationResults[currentIndex]!.marksAwarded >= currentQuestion.marks * 0.8, 'low-score': evaluationResults[currentIndex]!.marksAwarded < currentQuestion.marks * 0.5}">
+          <h3>Evaluation Result</h3>
+          <div class="score-display">
+            <span class="score">{{ evaluationResults[currentIndex]!.marksAwarded }} / {{ evaluationResults[currentIndex]!.maxMarks }} Marks</span>
+            <span class="similarity">Semantic Match: {{ evaluationResults[currentIndex]!.similarity * 100 | number:'1.0-0' }}%</span>
+          </div>
+          <p class="feedback-text">{{ evaluationResults[currentIndex]!.feedback }}</p>
+          
+          <div class="model-answer">
+            <h4>Model Answer</h4>
+            <p>{{ evaluationResults[currentIndex]!.modelAnswer }}</p>
+          </div>
+          
+          <div class="explanation-section" *ngIf="evaluationResults[currentIndex]!.explanation">
+            <h4>Explanation</h4>
+            <p>
+              {{ evaluationResults[currentIndex]!.explanation }}
+              <strong *ngIf="evaluationResults[currentIndex]!.page_number">
+                (Found on page {{ evaluationResults[currentIndex]!.page_number }})
+              </strong>
+            </p>
+          </div>
+        </div>
+      </div>
+    </mat-card-content>
+
+    <mat-card-actions class="card-actions">
+      <div class="nav-left">
+        <button
+          class="qa-nav-btn qa-prev-btn"
+          (click)="previousQuestion()"
+          [disabled]="currentIndex === 0">
+          ← Previous
+        </button>
+      </div>
+      <div class="nav-right">
+        <button
+          class="qa-nav-btn qa-submit-btn"
+          (click)="submitAnswer()"
+          *ngIf="!isAnswerSubmitted[currentIndex]"
+          [disabled]="!userAnswers[currentIndex]?.trim() || (isSubmitting$ | async)">
+          <span *ngIf="!(isSubmitting$ | async)">✔ Submit Answer</span>
+          <mat-spinner diameter="20" *ngIf="isSubmitting$ | async"></mat-spinner>
+        </button>
+
+        <button
+          class="qa-nav-btn qa-next-btn"
+          (click)="nextQuestion()"
+          *ngIf="currentIndex < questions.length - 1">
+          Next →
+        </button>
+
+        <button
+          class="qa-nav-btn qa-finish-btn"
+          (click)="finishQuiz()"
+          *ngIf="currentIndex === questions.length - 1">
+          🏁 Finish Quiz
+        </button>
+      </div>
+    </mat-card-actions>
+  </mat-card>
+</div>
+
+<div class="loading-state" *ngIf="isLoading$ | async">
+  <mat-spinner diameter="50"></mat-spinner>
+  <p>Loading your descriptive quiz...</p>
+</div>

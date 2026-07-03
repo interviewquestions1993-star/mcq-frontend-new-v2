@@ -1,0 +1,176 @@
+﻿<div class="results-container">
+  <div *ngIf="results; else noResults">
+    <div class="print-header">
+      <h2>Quiz Results — {{ results.topic }}</h2>
+      <p>{{ results.score }}/{{ results.total }} &bull; {{ results.percentage }}% &bull; {{ results.questions.length }} questions</p>
+    </div>
+
+    <div class="results-header">
+      <div>
+        <h1>Quiz Results</h1>
+        <p class="results-meta">{{ results.topic }} &middot; {{ results.score }}/{{ results.total }} &middot; {{ results.percentage }}%</p>
+      </div>
+      <div class="action-buttons top-actions">
+        <button mat-raised-button class="action-button pdf-button" (click)="saveAsPDF()">
+          💾 Save as PDF
+        </button>
+        <button mat-raised-button class="action-button home-button" (click)="goHome()">
+          🏠 Home
+        </button>
+        <button mat-raised-button class="action-button retake-button" (click)="retakeQuiz()" *ngIf="!isQA">
+          🔄 Retake Quiz
+        </button>
+      </div>
+    </div>
+
+    <div class="summary-card" [ngClass]="'score-' + getGrade(results.percentage)">
+      <div class="score-circle">
+        <div class="circle-value">{{ results.percentage }}%</div>
+        <div class="circle-meta">{{ results.score }}/{{ results.total }}</div>
+      </div>
+      <div class="summary-details">
+        <h2>{{ getTitleByGrade(getGrade(results.percentage)) }}</h2>
+        <p class="topic-name">{{ results.topic }}</p>
+        <p class="summary-text">{{ getFeedback(results.percentage) }}</p>
+      </div>
+    </div>
+
+    <div class="stats-grid">
+      <ng-container *ngIf="!isQA">
+        <div class="stat-card">
+          <div class="stat-icon">✅</div>
+          <div>
+            <p class="stat-label">Correct</p>
+            <p class="stat-value">{{ results.score }}</p>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">❌</div>
+          <div>
+            <p class="stat-label">Incorrect</p>
+            <p class="stat-value">{{ results.total - results.score }}</p>
+          </div>
+        </div>
+      </ng-container>
+      <ng-container *ngIf="isQA">
+        <div class="stat-card">
+          <div class="stat-icon">🏅</div>
+          <div>
+            <p class="stat-label">Marks Scored</p>
+            <p class="stat-value">{{ results.score }}</p>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">📋</div>
+          <div>
+            <p class="stat-label">Total Marks</p>
+            <p class="stat-value">{{ results.total }}</p>
+          </div>
+        </div>
+      </ng-container>
+      <div class="stat-card">
+        <div class="stat-icon">❓</div>
+        <div>
+          <p class="stat-label">Total Questions</p>
+          <p class="stat-value">{{ results.questions.length }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- MCQ Review -->
+    <div class="review-card" *ngIf="!isQA">
+      <h3>Review Your Answers</h3>
+      <div class="answers-list">
+        <div
+          *ngFor="let question of results.questions"
+          class="answer-item"
+          [ngClass]="{ 'correct': isCorrectAnswer(question), 'incorrect': !isCorrectAnswer(question) }"
+        >
+          <div class="answer-header">
+            <div class="answer-status">
+              <span class="answer-emoji" *ngIf="isCorrectAnswer(question)">✅</span>
+              <span class="answer-emoji" *ngIf="!isCorrectAnswer(question)">❌</span>
+            </div>
+            <h4>{{ question.question }}</h4>
+          </div>
+          <div class="answer-details">
+            <p><strong>Your Answer:</strong> {{ getAnswerLabelWithText(question, results.answers[question.localId || question.id]) || 'Not answered' }}</p>
+            <p *ngIf="results.answers[question.localId || question.id] !== question.correct_answer">
+              <strong>Correct Answer:</strong> {{ getAnswerLabelWithText(question, question.correct_answer) || question.correct_answer }}
+            </p>
+            <p class="explanation"><strong>Explanation:</strong> {{ question.explanation }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- QA Review -->
+    <div class="review-card" *ngIf="isQA">
+      <h3>📝 Detailed Answer Review</h3>
+      <div class="answers-list">
+        <div
+          *ngFor="let q of results.questions; let i = index"
+          class="answer-item qa-answer-item"
+          [ngClass]="{
+            'correct':   q.marksAwarded >= q.maxMarks * 0.8,
+            'partial':   q.marksAwarded > 0 && q.marksAwarded < q.maxMarks * 0.8,
+            'incorrect': q.marksAwarded === 0
+          }"
+        >
+          <div class="answer-header qa-header">
+            <span class="qa-question-num">Q{{ i + 1 }}</span>
+            <h4 class="qa-question-text">{{ q.question }}</h4>
+            <span class="qa-marks-badge"
+              [ngClass]="{
+                'marks-full':    q.marksAwarded >= q.maxMarks * 0.8,
+                'marks-partial': q.marksAwarded > 0 && q.marksAwarded < q.maxMarks * 0.8,
+                'marks-zero':    q.marksAwarded === 0
+              }">
+              {{ q.marksAwarded }}/{{ q.maxMarks }} marks
+            </span>
+          </div>
+
+          <div class="answer-details qa-details">
+            <div class="qa-section user-ans">
+              <p class="qa-label">✍️ Your Answer</p>
+              <p class="qa-text">{{ q.userAnswer || '(not answered)' }}</p>
+            </div>
+
+            <div class="qa-section model-ans" *ngIf="q.modelAnswer">
+              <p class="qa-label">📖 Model Answer</p>
+              <p class="qa-text">{{ q.modelAnswer }}</p>
+            </div>
+
+            <div class="qa-section feedback-ans">
+              <p class="qa-label">💬 Feedback</p>
+              <p class="qa-text">{{ q.feedback }}</p>
+            </div>
+
+            <div class="qa-section explanation-ans" *ngIf="q.explanation">
+              <p class="qa-label">📚 Explanation</p>
+              <p class="qa-text">
+                {{ q.explanation }}
+                <strong *ngIf="q.page_number">&nbsp;(Found on page {{ q.page_number }})</strong>
+              </p>
+            </div>
+
+            <div class="qa-stats-row">
+              <span class="qa-stat">🎯 Semantic: {{ (q.similarity * 100) | number:'1.0-0' }}%</span>
+              <span class="qa-stat">🔑 Keywords: {{ q.keywordCoverage }}%</span>
+              <span class="qa-stat qa-difficulty">{{ q.difficulty }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <ng-template #noResults>
+    <div class="no-results">
+      <div class="no-results-card">
+        <p>No quiz results found. Please complete a quiz first.</p>
+        <button mat-raised-button color="primary" class="start-button" (click)="goHome()">Start Quiz</button>
+      </div>
+    </div>
+  </ng-template>
+</div>

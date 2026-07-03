@@ -1,0 +1,137 @@
+<div class="study-wrapper">
+
+  <!-- Header -->
+  <div class="study-header">
+    <button class="back-btn" (click)="goBack()">
+      <span class="back-icon">←</span> Back
+    </button>
+    <div class="header-info">
+      <h1 class="study-title">📖 Study Mode</h1>
+      <p class="study-subtitle">{{ topicDisplay }}</p>
+    </div>
+    <div class="header-count" *ngIf="!(isLoading$ | async) && !hasError">
+      <span class="count-badge">{{ filteredQuestions.length }} / {{ allQuestions.length }} Questions</span>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div class="loading-state" *ngIf="isLoading$ | async">
+    <mat-spinner diameter="50"></mat-spinner>
+    <p>Loading study material...</p>
+  </div>
+
+  <!-- Error -->
+  <div class="error-state" *ngIf="!(isLoading$ | async) && hasError">
+    <div class="error-card">
+      <span class="error-icon">⚠️</span>
+      <h3>Could not load questions</h3>
+      <p>{{ errorMessage }}</p>
+      <button class="retry-btn" (click)="loadQuestions()">Try Again</button>
+    </div>
+  </div>
+
+  <!-- Main content -->
+  <ng-container *ngIf="!(isLoading$ | async) && !hasError">
+
+    <!-- Search + Filters -->
+    <div class="filters-bar">
+      <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input
+          type="text"
+          [(ngModel)]="searchText"
+          (ngModelChange)="applyFilters()"
+          placeholder="Search questions, answers or keywords..."
+          class="search-input"
+        />
+        <button *ngIf="searchText" class="clear-search" (click)="searchText=''; applyFilters()">✕</button>
+      </div>
+
+      <div class="filter-pills">
+        <select class="filter-select" [(ngModel)]="filterDifficulty" (ngModelChange)="applyFilters()">
+          <option value="">All Difficulties</option>
+          <option *ngFor="let d of uniqueDifficulties" [value]="d">{{ d }}</option>
+        </select>
+
+        <select class="filter-select" [(ngModel)]="filterMarks" (ngModelChange)="applyFilters()">
+          <option value="">All Marks</option>
+          <option *ngFor="let m of uniqueMarks" [value]="m">{{ m }} Mark{{ m !== 1 ? "s" : "" }}</option>
+        </select>
+
+        <button class="clear-filters-btn" (click)="clearFilters()"
+          *ngIf="searchText || filterDifficulty || filterMarks !== ''">
+          Clear Filters
+        </button>
+      </div>
+    </div>
+
+    <!-- No results -->
+    <div class="no-results" *ngIf="filteredQuestions.length === 0">
+      <p>No questions match your search. Try different filters.</p>
+    </div>
+
+    <!-- Questions list (static, no expand/collapse) -->
+    <div class="questions-list">
+      <div
+        *ngFor="let q of filteredQuestions; let i = index"
+        class="question-card"
+        [class.difficulty-easy]="q.difficulty.toLowerCase() === 'easy'"
+        [class.difficulty-medium]="q.difficulty.toLowerCase() === 'medium'"
+        [class.difficulty-hard]="q.difficulty.toLowerCase() === 'hard'"
+      >
+        <!-- Question header row -->
+        <div class="qcard-header">
+          <span class="q-number">Q{{ i + 1 }}</span>
+          <div class="qcard-meta">
+            <span class="badge" [ngClass]="difficultyClass(q.difficulty)">
+              {{ difficultyStars(q.difficulty) }} {{ q.difficulty }}
+            </span>
+            <span class="marks-pill">{{ q.marks }} Mark{{ q.marks !== 1 ? 's' : '' }}</span>
+            <span class="word-pill" *ngIf="q.expected_word_count">
+              {{ q.expected_word_count.min }}–{{ q.expected_word_count.max }} words
+            </span>
+          </div>
+        </div>
+
+        <!-- Question text -->
+        <p class="q-text">{{ q.question }}</p>
+
+        <div class="answer-divider"></div>
+
+        <!-- Model Answer -->
+        <div class="answer-block">
+          <p class="section-label">📝 Model Answer</p>
+          <p class="answer-text">{{ q.answer }}</p>
+        </div>
+
+        <!-- Keywords -->
+        <div class="keywords-block" *ngIf="q.keywords && q.keywords.length > 0">
+          <p class="section-label">🔑 Important Keywords</p>
+          <div class="keywords-chips">
+            <span class="keyword-chip" *ngFor="let kw of q.keywords">{{ kw }}</span>
+          </div>
+        </div>
+
+        <!-- Explanation + Page -->
+        <div class="explanation-block" *ngIf="q.explanation">
+          <p class="section-label">📚 Explanation</p>
+          <p class="explanation-text">
+            {{ q.explanation }}
+            <span class="page-ref" *ngIf="q.page_number">— Page {{ q.page_number }}</span>
+          </p>
+        </div>
+
+        <!-- Page only -->
+        <p class="page-ref-standalone" *ngIf="!q.explanation && q.page_number">
+          📄 Page {{ q.page_number }}
+        </p>
+      </div>
+    </div>
+
+    <!-- Bottom nav -->
+    <div class="bottom-nav">
+      <button class="back-btn-bottom" (click)="goBack()">← Back to Chapters</button>
+    </div>
+
+  </ng-container>
+</div>
