@@ -127,9 +127,29 @@
 
   <!-- API Configuration -->
   <script>
-    // Point frontend to the deployed backend.
-    window.__API_URL__ = 'https://mcq-backend-new-v2.onrender.com';
-    console.log('API URL:', window.__API_URL__);
+    // Set API URL based on environment: local development -> localhost, otherwise Render.
+    (function() {
+      try {
+        var host = window.location.hostname || '';
+        var apiUrl = 'https://mcq-backend-new-v2.onrender.com';
+
+        // Local development hosts
+        if (host === 'localhost' || host === '127.0.0.1' || host === '' || host === '0.0.0.0') {
+          apiUrl = 'http://localhost:8000';
+        }
+
+        // If running on GitHub Pages for this repo, use Render backend (explicit)
+        if (host.endsWith('github.io') || host.includes('interviewquestions1993-star.github.io')) {
+          apiUrl = 'https://mcq-backend-new-v2.onrender.com';
+        }
+
+        window.__API_URL__ = apiUrl;
+        console.log('API URL set to:', window.__API_URL__);
+      } catch (e) {
+        console.warn('Failed to determine API URL, defaulting to Render:', e);
+        window.__API_URL__ = 'https://mcq-backend-new-v2.onrender.com';
+      }
+    })();
   </script>
 
   <!-- Google Analytics -->

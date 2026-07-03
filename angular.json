@@ -34,7 +34,7 @@
                 {"type": "anyComponentStyle", "maximumWarning": "2kb", "maximumError": "10kb"}
               ],
               "outputHashing": "all",
-              "baseHref": "/mcq-exam-frontend/"
+              "baseHref": "/mcq-frontend-new-v2/"
             },
             "development": {
               "buildOptimizer": false,

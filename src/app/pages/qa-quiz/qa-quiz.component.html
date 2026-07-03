@@ -38,12 +38,26 @@
 
       <div class="evaluation-section" *ngIf="isAnswerSubmitted[currentIndex] && evaluationResults[currentIndex]">
         <div class="feedback-card" [ngClass]="{'high-score': evaluationResults[currentIndex]!.marksAwarded >= currentQuestion.marks * 0.8, 'low-score': evaluationResults[currentIndex]!.marksAwarded < currentQuestion.marks * 0.5}">
-          <h3>Evaluation Result</h3>
+          <div class="evaluation-header">
+            <h3>Evaluation Result</h3>
+            <span class="evaluator-badge" *ngIf="evaluationResults[currentIndex]!.evaluator">
+              Evaluated by: {{ evaluationResults[currentIndex]!.evaluator }}
+            </span>
+          </div>
           <div class="score-display">
             <span class="score">{{ evaluationResults[currentIndex]!.marksAwarded }} / {{ evaluationResults[currentIndex]!.maxMarks }} Marks</span>
             <span class="similarity">Semantic Match: {{ evaluationResults[currentIndex]!.similarity * 100 | number:'1.0-0' }}%</span>
           </div>
           <p class="feedback-text">{{ evaluationResults[currentIndex]!.feedback }}</p>
+          
+          <div class="missing-keywords-section" *ngIf="evaluationResults[currentIndex]!.missingKeywords?.length">
+            <h4>Missing Key Concepts:</h4>
+            <div class="keyword-chips">
+              <span class="keyword-chip" *ngFor="let kw of evaluationResults[currentIndex]!.missingKeywords">
+                {{ kw }}
+              </span>
+            </div>
+          </div>
           
           <div class="model-answer">
             <h4>Model Answer</h4>

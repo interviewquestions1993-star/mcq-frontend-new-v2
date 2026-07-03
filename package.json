@@ -11,7 +11,7 @@
     "online learning"
   ],
   "author": "MCQ Exam & Interview Preparer",
-  "homepage": "https://www.ai-mcq-trainer.in",
+  "homepage": "https://interviewquestions1993-star.github.io/mcq-frontend-new-v2/",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
@@ -21,8 +21,8 @@
     "test": "ng test",
     "lint": "ng lint",
     "seo-check": "echo 'SEO optimizations applied successfully'",
-    "deploy": "ng build --configuration production --base-href /mcq-exam-frontend-new-v1/ && npx angular-cli-ghpages --dir=dist/mcq-exam-preparer",
-    "deploy:seo": "npm run build:seo -- --base-href /mcq-exam-frontend-new-v1/ && npx angular-cli-ghpages --dir=dist/mcq-exam-preparer"
+    "deploy": "ng build --configuration production --base-href /mcq-frontend-new-v2/ && npx angular-cli-ghpages --dir=dist/mcq-exam-preparer --repo=https://github.com/interviewquestions1993-star/mcq-frontend-new-v2.git",
+    "deploy:seo": "npm run build:seo -- --base-href /mcq-frontend-new-v2/ && npx angular-cli-ghpages --dir=dist/mcq-exam-preparer --repo=https://github.com/interviewquestions1993-star/mcq-frontend-new-v2.git"
   },
   "private": true,
   "dependencies": {

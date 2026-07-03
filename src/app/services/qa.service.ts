@@ -29,6 +29,7 @@ export interface QAEvaluateResponse {
   keywordCoverage: number;
   feedback: string;
   missingKeywords: string[];
+  evaluator?: string;
   modelAnswer: string;
   explanation?: string;
   page_number?: string;
