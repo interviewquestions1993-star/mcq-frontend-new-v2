@@ -8,16 +8,24 @@ import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatRadioModule } from '@angular/material/radio';
+import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../services/auth.service';
 
 interface MCQQuestion {
   id: number;
   question: string;
-  options: string[];
-  correct_answer: string;
-  explanation: string;
-  difficulty: string;
+  options?: string[];
+  correct_answer?: string;
+  explanation?: string;
+  difficulty?: string;
   localId?: string;
+  userAnswer?: string;
+  modelAnswer?: string;
+  marksAwarded?: number;
+  maxMarks?: number;
+  feedback?: string;
+  evaluator?: string;
 }
 
 interface PersistedMCQ {
@@ -31,6 +39,12 @@ interface PersistedMCQ {
   percentage: number;
   created_at: string;
   status: string;
+  quizType?: string;
+  quiz_type?: string;
+  totalMarks?: number;
+  maximumMarks?: number;
+  chapter?: string;
+  completedAt?: string;
 }
 
 interface TopicAnalytics {
@@ -51,7 +65,9 @@ interface TopicAnalytics {
     MatCardModule,
     MatIconModule,
     MatTabsModule,
-    MatSnackBarModule
+    MatSnackBarModule,
+    MatRadioModule,
+    FormsModule
   ],
   template: `
     <div class="persisted-container">
@@ -143,17 +159,26 @@ interface TopicAnalytics {
           </div>
         </div>
 
+        <div class="topic-filter-section" *ngIf="uniqueChapters.length > 0">
+          <h3>Filter by Topic</h3>
+          <mat-radio-group [(ngModel)]="selectedChapterFilter" class="topic-radio-group">
+            <mat-radio-button *ngFor="let chapter of uniqueChapters" [value]="chapter" class="topic-radio">
+              {{ chapter }}
+            </mat-radio-button>
+          </mat-radio-group>
+        </div>
+
         <div class="mcqs-list">
           <mat-card *ngFor="let mcq of getValidMCQs(); let idx = index" class="mcq-card">
             <!-- Header -->
             <div class="mcq-header">
               <div class="mcq-title">
-                <h3>{{ idx + 1 }}. {{ mcq.topic }}</h3>
+                <h3>{{ idx + 1 }}. {{ getTopic(mcq) }}</h3>
               </div>
               <div class="mcq-meta">
-                <span class="question-count">{{ mcq.num_questions }} Questions</span>
-                <span class="score-badge">Score: {{ mcq.score }}/{{ mcq.total }} ({{ mcq.percentage }}%)</span>
-                <span class="created-date">{{ formatDate(mcq.created_at) }}</span>
+                <span class="question-count">{{ getQuestionCount(mcq) }} Questions</span>
+                <span class="score-badge">Score: {{ getScore(mcq) }}/{{ getTotal(mcq) }} ({{ mcq.percentage }}%)</span>
+                <span class="created-date">{{ formatDate(mcq.created_at || mcq.completedAt) }}</span>
               </div>
             </div>
 
@@ -169,14 +194,23 @@ interface TopicAnalytics {
                 </div>
 
                 <div class="answer-summary">
-                  <p><strong>Your Answer:</strong> {{ getAnswerLabelWithText(question, getSelectedAnswer(question, mcq)) || 'Not answered' }}</p>
-                  <p *ngIf="!areAnswersEquivalent(getSelectedAnswer(question, mcq), question.correct_answer, question)">
-                    <strong>Correct Answer:</strong> {{ getAnswerLabelWithText(question, question.correct_answer) || question.correct_answer }}
-                  </p>
+                  <ng-container *ngIf="isQA(mcq); else mcqAnswer">
+                    <p><strong>Your Answer:</strong> {{ question.userAnswer || 'Not answered' }}</p>
+                    <p><strong>Model Answer:</strong> {{ question.modelAnswer || 'N/A' }}</p>
+                    <p><strong>Marks:</strong> {{ question.marksAwarded }}/{{ question.maxMarks }}</p>
+                    <p *ngIf="question.feedback"><strong>Feedback:</strong> {{ question.feedback }}</p>
+                    <p *ngIf="question.evaluator"><small style="color: #667eea; font-weight: 500;"><em>Evaluated by: {{ question.evaluator }}</em></small></p>
+                  </ng-container>
+                  <ng-template #mcqAnswer>
+                    <p><strong>Your Answer:</strong> {{ getAnswerLabelWithText(question, getSelectedAnswer(question, mcq)) || 'Not answered' }}</p>
+                    <p *ngIf="!areAnswersEquivalent(getSelectedAnswer(question, mcq), question.correct_answer, question)">
+                      <strong>Correct Answer:</strong> {{ getAnswerLabelWithText(question, question.correct_answer) || question.correct_answer }}
+                    </p>
+                  </ng-template>
                 </div>
 
                 <!-- Options -->
-                <div class="options-display">
+                <div class="options-display" *ngIf="question.options">
                   <div *ngFor="let option of question.options; let oIdx = index" class="option-item" [ngClass]="getOptionClass(option, question, mcq)">
                     <span class="option-letter">{{ getOptionLabel(oIdx) }}</span>
                     <span class="option-text">{{ getOptionText(option) }}</span>
@@ -213,6 +247,41 @@ interface TopicAnalytics {
       padding: 20px;
       min-height: 100vh;
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+
+    .topic-filter-section {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      margin-bottom: 25px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    
+    .topic-filter-section h3 {
+      margin-top: 0;
+      margin-bottom: 15px;
+      color: #333;
+      font-size: 1.1rem;
+      font-weight: 500;
+    }
+
+    .topic-radio-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+
+    .topic-radio {
+      background: #f8f9fa;
+      padding: 8px 16px;
+      border-radius: 20px;
+      border: 1px solid #e2e8f0;
+      transition: all 0.2s ease;
+    }
+
+    ::ng-deep .topic-radio.mat-radio-checked {
+      background: #eef2ff;
+      border-color: #667eea;
     }
 
     .loading-state {
@@ -602,6 +671,8 @@ export class PersistedMcqsComponent implements OnInit {
   passRate = 0;
   subjectAnalytics: TopicAnalytics[] = [];
   chapterAnalytics: TopicAnalytics[] = [];
+  uniqueChapters: string[] = [];
+  selectedChapterFilter: string = '';
 
   constructor(
     private http: HttpClient,
@@ -629,6 +700,16 @@ export class PersistedMcqsComponent implements OnInit {
     this.http.get<PersistedMCQ[]>(apiUrl).subscribe(
       (data) => {
         this.mcqs = data;
+
+        const chapterSet = new Set<string>();
+        data.forEach(mcq => {
+          chapterSet.add(this.getChapterLabel(mcq));
+        });
+        this.uniqueChapters = Array.from(chapterSet).sort();
+        if (this.uniqueChapters.length > 0) {
+          this.selectedChapterFilter = this.uniqueChapters[0];
+        }
+
         this.computeAnalytics(data);
         this.isLoading = false;
       },
@@ -674,10 +755,12 @@ export class PersistedMcqsComponent implements OnInit {
       return null;
     }
 
-    for (let i = 0; i < question.options.length; i++) {
-      const optionNormalized = this.normalizeOptionText(question.options[i]);
-      if (optionNormalized === normalizedAnswer) {
-        return this.getOptionLabel(i);
+    if (question.options) {
+      for (let i = 0; i < question.options.length; i++) {
+        const optionNormalized = this.normalizeOptionText(question.options[i]);
+        if (optionNormalized === normalizedAnswer) {
+          return this.getOptionLabel(i);
+        }
       }
     }
 
@@ -697,6 +780,7 @@ export class PersistedMcqsComponent implements OnInit {
   }
 
   isCorrectOption(option: string, question: MCQQuestion): boolean {
+    if (!question.options) return false;
     const idx = question.options.indexOf(option);
     const optionLetter = idx >= 0 ? this.getOptionLabel(idx) : null;
     const correctLetter = this.getOptionLetterForAnswer(question, question.correct_answer);
@@ -712,7 +796,7 @@ export class PersistedMcqsComponent implements OnInit {
 
   isSelectedOption(option: string, question: MCQQuestion, mcq?: PersistedMCQ): boolean {
     const selected = mcq ? this.getSelectedAnswer(question, mcq) : null;
-    if (!selected) return false;
+    if (!selected || !question.options) return false;
 
     const idx = question.options.indexOf(option);
     const optionLetter = idx >= 0 ? this.getOptionLabel(idx) : null;
@@ -736,15 +820,15 @@ export class PersistedMcqsComponent implements OnInit {
     return mcq.answers[key] || null;
   }
 
-  getAnswerLabelWithText(question: MCQQuestion, answer: string | null): string | null {
+  getAnswerLabelWithText(question: MCQQuestion, answer: string | null | undefined): string | null {
     if (!answer) {
       return null;
     }
 
     const optionLetter = this.getOptionLetterForAnswer(question, answer);
-    if (optionLetter) {
+    if (optionLetter && question.options) {
       const index = optionLetter.charCodeAt(0) - 65;
-      const optionText = question?.options?.[index];
+      const optionText = question.options[index];
       if (optionText) {
         return `${optionLetter}. ${this.getOptionText(optionText)}`;
       }
@@ -768,7 +852,8 @@ export class PersistedMcqsComponent implements OnInit {
     return classNames.join(' ');
   }
 
-  formatDate(dateString: string): string {
+  formatDate(dateString: string | undefined): string {
+    if (!dateString) return 'N/A';
     try {
       const date = new Date(dateString);
       return date.toLocaleDateString('en-US', {
@@ -788,7 +873,16 @@ export class PersistedMcqsComponent implements OnInit {
   }
 
   getValidMCQs(): PersistedMCQ[] {
-    return this.mcqs.filter(mcq => this.hasValidQuestions(mcq));
+    let valid = this.mcqs.filter(mcq => this.hasValidQuestions(mcq));
+    if (this.selectedChapterFilter && this.selectedChapterFilter !== 'All') {
+      valid = valid.filter(mcq => this.getChapterLabel(mcq) === this.selectedChapterFilter);
+    }
+    return valid;
+  }
+
+  getChapterLabel(mcq: PersistedMCQ): string {
+    const { chapter } = this.extractTopicMetadata(this.getTopic(mcq));
+    return chapter && chapter !== 'Unknown Chapter' ? chapter : this.getTopic(mcq);
   }
 
   goHome() {
@@ -813,17 +907,19 @@ export class PersistedMcqsComponent implements OnInit {
     let questionCount = 0;
 
     validMcqs.forEach((mcq) => {
-      const percentage = typeof mcq.percentage === 'number' ? mcq.percentage : mcq.total > 0 ? Math.round((mcq.score / mcq.total) * 100) : 0;
+      const score = typeof mcq.score === 'number' ? mcq.score : (mcq.totalMarks || 0);
+      const total = typeof mcq.total === 'number' ? mcq.total : (mcq.maximumMarks || 0);
+      const percentage = typeof mcq.percentage === 'number' ? mcq.percentage : total > 0 ? Math.round((score / total) * 100) : 0;
       const passed = percentage >= 60;
       totalPercentage += percentage;
-      questionCount += mcq.total || 0;
+      questionCount += total || 0;
       if (passed) {
         passedCount += 1;
       }
 
-      const { subject, chapter } = this.extractTopicMetadata(mcq.topic);
-      this.mergeAnalyticsEntry(subjectMap, subject, percentage, passed, mcq.score);
-      this.mergeAnalyticsEntry(chapterMap, chapter, percentage, passed, mcq.score);
+      const { subject, chapter } = this.extractTopicMetadata(this.getTopic(mcq));
+      this.mergeAnalyticsEntry(subjectMap, subject, percentage, passed, score);
+      this.mergeAnalyticsEntry(chapterMap, chapter, percentage, passed, score);
     });
 
     this.totalAttempts = validMcqs.length;
@@ -895,5 +991,25 @@ export class PersistedMcqsComponent implements OnInit {
   getChartBarWidth(value: number): string {
     const normalized = Math.max(0, Math.min(100, value));
     return `${normalized}%`;
+  }
+
+  getTopic(mcq: PersistedMCQ): string {
+    return mcq.topic || mcq.chapter || 'Quiz';
+  }
+
+  getScore(mcq: PersistedMCQ): number {
+    return typeof mcq.score === 'number' ? mcq.score : (mcq.totalMarks || 0);
+  }
+
+  getTotal(mcq: PersistedMCQ): number {
+    return typeof mcq.total === 'number' ? mcq.total : (mcq.maximumMarks || 0);
+  }
+
+  getQuestionCount(mcq: PersistedMCQ): number {
+    return mcq.num_questions || (mcq.questions ? mcq.questions.length : 0);
+  }
+
+  isQA(mcq: PersistedMCQ): boolean {
+    return mcq.quizType === 'qa' || mcq.quiz_type === 'qa';
   }
 }

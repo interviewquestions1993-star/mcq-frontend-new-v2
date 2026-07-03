@@ -147,6 +147,7 @@ export class QaQuizComponent implements OnInit, OnDestroy {
             modelAnswer: response.modelAnswer,
             explanation: response.explanation,
             page_number: response.page_number,
+            evaluator: response.evaluator,
             timeTaken: 0
           });
         },
@@ -170,10 +171,6 @@ export class QaQuizComponent implements OnInit, OnDestroy {
   }
 
   finishQuiz() {
-    const percentage = this.totalMaxMarks > 0
-      ? (this.totalMarksAwarded / this.totalMaxMarks) * 100
-      : 0;
-
     // Build unanswered question entries so every question appears in results
     const allQuestionsData = this.questions.map((q, i) => {
       const submitted = this.historyData.find(h => h.questionId === q.id);
@@ -190,27 +187,36 @@ export class QaQuizComponent implements OnInit, OnDestroy {
         feedback: 'Not submitted',
         modelAnswer: '',
         explanation: '',
-        page_number: q.page_number || ''
+        page_number: q.page_number || '',
+        evaluator: ''
       };
     });
+
+    const finalTotalMaxMarks = allQuestionsData.reduce((sum, q) => sum + (q.maxMarks || 0), 0);
+    const finalMarksAwarded = allQuestionsData.reduce((sum, q) => sum + (q.marksAwarded || 0), 0);
+    const percentage = finalTotalMaxMarks > 0
+      ? (finalMarksAwarded / finalTotalMaxMarks) * 100
+      : 0;
 
     const record: QAHistoryRecord = {
       quizType: 'qa',
       chapter: this.chapter,
       version: this.version,
       questions: allQuestionsData,
-      totalMarks: this.totalMarksAwarded,
-      maximumMarks: this.totalMaxMarks,
+      totalMarks: finalMarksAwarded,
+      maximumMarks: finalTotalMaxMarks,
       percentage: Math.round(percentage),
       completedAt: new Date().toISOString()
     };
+
+
 
     // Store rich results in sessionStorage for results page
     const qaResults = {
       type: 'qa',
       topic: this.topic,
-      score: this.totalMarksAwarded,
-      total: this.totalMaxMarks,
+      score: finalMarksAwarded,
+      total: finalTotalMaxMarks,
       percentage: Math.round(percentage),
       questions: allQuestionsData
     };
@@ -222,7 +228,7 @@ export class QaQuizComponent implements OnInit, OnDestroy {
 
     this.qaService.saveHistory(record).subscribe({
       next: () => navigate(),
-      error: (err) => {
+      error: (err: any) => {
         console.error('Failed to save history', err);
         navigate();
       }

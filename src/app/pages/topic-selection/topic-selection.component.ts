@@ -208,6 +208,19 @@ interface TopicConcept {
             <input
               type="radio"
               name="questionCount"
+              [value]="5"
+              [(ngModel)]="questionCount"
+              class="count-input"
+            />
+            <div class="pill-content">
+              <span class="pill-label">5 Questions</span>
+              <span class="pill-subtitle">Quick practice</span>
+            </div>
+          </label>
+          <label class="count-pill">
+            <input
+              type="radio"
+              name="questionCount"
               [value]="10"
               [(ngModel)]="questionCount"
               class="count-input"

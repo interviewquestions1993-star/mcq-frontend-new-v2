@@ -1,4 +1,4 @@
-﻿<div class="results-container">
+<div class="results-container">
   <div *ngIf="results; else noResults">
     <div class="print-header">
       <h2>Quiz Results — {{ results.topic }}</h2>
@@ -144,6 +144,7 @@
             <div class="qa-section feedback-ans">
               <p class="qa-label">💬 Feedback</p>
               <p class="qa-text">{{ q.feedback }}</p>
+              <p *ngIf="q.evaluator" class="qa-text" style="margin-top: 8px;"><small style="color: #667eea; font-weight: 500;"><em>Evaluated by: {{ q.evaluator }}</em></small></p>
             </div>
 
             <div class="qa-section explanation-ans" *ngIf="q.explanation">
