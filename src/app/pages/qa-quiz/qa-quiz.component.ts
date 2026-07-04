@@ -42,7 +42,8 @@ export class QaQuizComponent implements OnInit, OnDestroy {
   // Evaluation state
   isAnswerSubmitted: boolean[] = [];
   evaluationResults: (QAEvaluateResponse | null)[] = [];
-  
+  error: string = '';
+
   // History tracking
   historyData: any[] = [];
   totalMarksAwarded: number = 0;
@@ -89,6 +90,10 @@ export class QaQuizComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
+  goHome() {
+    this.router.navigate(['/']);
+  }
+
   loadQuestions() {
     this.isLoading$.next(true);
     
@@ -100,7 +105,17 @@ export class QaQuizComponent implements OnInit, OnDestroy {
     this.qaService.getQuestions(payload)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: (response) => {
+        next: (response: any) => {
+          if (response.status === 'completed' || response.completed === true) {
+            this.error = response.message || 'Congratulations! You have attempted all questions for this chapter.';
+            this.isLoading$.next(false);
+            return;
+          }
+          if (response.status === 'chapter_not_available') {
+            this.error = response.message || 'This chapter is not yet available.';
+            this.isLoading$.next(false);
+            return;
+          }
           this.questions = response.questions || [];
           this.userAnswers = new Array(this.questions.length).fill('');
           this.isAnswerSubmitted = new Array(this.questions.length).fill(false);
@@ -109,6 +124,7 @@ export class QaQuizComponent implements OnInit, OnDestroy {
         },
         error: (err) => {
           console.error('Failed to load questions', err);
+          this.error = 'Failed to load questions. Please try again.';
           this.isLoading$.next(false);
         }
       });

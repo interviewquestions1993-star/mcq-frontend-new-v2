@@ -105,6 +105,15 @@ interface TopicAnalytics {
         <h1 class="page-title">📚 Your Exam History</h1>
         <p class="page-subtitle">Total Attempts: {{ getValidMCQs().length }}</p>
 
+        <div class="topic-filter-section" *ngIf="uniqueChapters.length > 0">
+          <h3>Filter by Topic</h3>
+          <mat-radio-group [(ngModel)]="selectedChapterFilter" (ngModelChange)="onFilterChange()" class="topic-radio-group">
+            <mat-radio-button *ngFor="let chapter of uniqueChapters" [value]="chapter" class="topic-radio">
+              {{ chapter }}
+            </mat-radio-button>
+          </mat-radio-group>
+        </div>
+
         <div class="analytics-panel" *ngIf="getValidMCQs().length > 0">
           <div class="analytics-cards">
             <mat-card class="analytics-card">
@@ -115,7 +124,7 @@ interface TopicAnalytics {
             <mat-card class="analytics-card">
               <div class="analytics-card-title">Average Percentage</div>
               <div class="analytics-card-value">{{ averagePercentage | number:'1.0-0' }}%</div>
-              <div class="analytics-card-subtitle">Average across all attempts (actual percentages calculated)</div>
+              <div class="analytics-card-subtitle">Average across all attempts</div>
             </mat-card>
             <mat-card class="analytics-card">
               <div class="analytics-card-title">Pass Rate</div>
@@ -157,15 +166,6 @@ interface TopicAnalytics {
               </ng-template>
             </mat-card>
           </div>
-        </div>
-
-        <div class="topic-filter-section" *ngIf="uniqueChapters.length > 0">
-          <h3>Filter by Topic</h3>
-          <mat-radio-group [(ngModel)]="selectedChapterFilter" class="topic-radio-group">
-            <mat-radio-button *ngFor="let chapter of uniqueChapters" [value]="chapter" class="topic-radio">
-              {{ chapter }}
-            </mat-radio-button>
-          </mat-radio-group>
         </div>
 
         <div class="mcqs-list">
@@ -282,6 +282,24 @@ interface TopicAnalytics {
     ::ng-deep .topic-radio.mat-radio-checked {
       background: #eef2ff;
       border-color: #667eea;
+    }
+
+    :host-context(.dark-theme) .topic-filter-section h3 {
+      color: #e6eef8 !important;
+    }
+
+    :host-context(.dark-theme) .topic-radio {
+      background: #0f1724 !important;
+      border-color: #374151 !important;
+    }
+
+    :host-context(.dark-theme) ::ng-deep .topic-radio .mdc-form-field {
+      color: #e6eef8 !important;
+    }
+
+    :host-context(.dark-theme) ::ng-deep .topic-radio.mat-radio-checked {
+      background: rgba(102, 126, 234, 0.25) !important;
+      border-color: #667eea !important;
     }
 
     .loading-state {
@@ -565,6 +583,11 @@ interface TopicAnalytics {
       border-color: #28a745;
     }
 
+    .option-item.correct .option-text,
+    .option-item.correct .option-letter {
+      color: #000000 !important;
+    }
+
     .option-item.selected {
       background: #e7f1ff;
       border-color: #4f8cff;
@@ -574,6 +597,11 @@ interface TopicAnalytics {
       background: #f8d7da;
       border-color: #dc3545;
       color: #721c24;
+    }
+
+    .option-item.wrong .option-text,
+    .option-item.wrong .option-letter {
+      color: #000000 !important;
     }
 
     .wrong-indicator {
@@ -710,7 +738,7 @@ export class PersistedMcqsComponent implements OnInit {
           this.selectedChapterFilter = this.uniqueChapters[0];
         }
 
-        this.computeAnalytics(data);
+        this.computeAnalytics(this.getValidMCQs());
         this.isLoading = false;
       },
       (error) => {
@@ -878,6 +906,10 @@ export class PersistedMcqsComponent implements OnInit {
       valid = valid.filter(mcq => this.getChapterLabel(mcq) === this.selectedChapterFilter);
     }
     return valid;
+  }
+
+  onFilterChange() {
+    this.computeAnalytics(this.getValidMCQs());
   }
 
   getChapterLabel(mcq: PersistedMCQ): string {

@@ -1,4 +1,4 @@
-<div class="quiz-container" *ngIf="!(isLoading$ | async)">
+<div class="quiz-container" *ngIf="!(isLoading$ | async) && !error">
   <div class="quiz-header">
     <div class="topic-title">
       <h1>{{ topic }}</h1>
@@ -117,4 +117,17 @@
 <div class="loading-state" *ngIf="isLoading$ | async">
   <mat-spinner diameter="50"></mat-spinner>
   <p>Loading your descriptive quiz...</p>
+</div>
+
+<div class="error-state" *ngIf="error && !(isLoading$ | async)">
+  <mat-card class="error-card">
+    <div class="error-content">
+      <mat-icon class="error-icon">error_outline</mat-icon>
+      <h2>Quiz Notice</h2>
+      <p>{{ error }}</p>
+      <button mat-raised-button color="primary" (click)="goHome()">
+        Return Home
+      </button>
+    </div>
+  </mat-card>
 </div>

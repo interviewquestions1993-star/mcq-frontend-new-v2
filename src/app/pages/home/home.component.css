@@ -52,7 +52,8 @@
 .persisted-icon{font-size:48px;width:80px;height:80px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.2);border-radius:20px;}
 .persisted-card h3{font-size:1.8rem;font-weight:700;margin:0;}
 .persisted-card p{font-size:1rem;opacity:.95;margin:0;}
-.persisted-card button{margin-top:12px;font-size:1rem;padding:12px 32px;border-radius:8px;font-weight:600;background:#fff;color:#667eea;transition:transform .2s ease,box-shadow .2s ease;}
+.persisted-card button{margin-top:12px;font-size:1rem;padding:12px 32px;border-radius:8px;font-weight:600;background:#fff !important;color:#667eea !important;transition:transform .2s ease,box-shadow .2s ease;}
+.persisted-card button::ng-deep .mdc-button__label {color: #667eea !important;}
 .persisted-card button:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(0,0,0,.15);}
 
 @media (max-width: 640px){.persisted-card{padding:32px 24px;}.persisted-icon{font-size:36px;width:60px;height:60px;}.persisted-card h3{font-size:1.4rem;}}

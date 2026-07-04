@@ -7,11 +7,14 @@ import { MatRadioModule } from '@angular/material/radio';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { FormsModule } from '@angular/forms';
 import { CurriculumService } from '../../services/curriculum.service';
-import { BehaviorSubject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
-import { Subject } from 'rxjs';
+import { ProgressService, ProgressInfo } from '../../services/progress.service';
+import { ResetProgressDialogComponent } from '../../components/reset-progress-dialog/reset-progress-dialog.component';
+import { BehaviorSubject, Subject } from 'rxjs';
+import { takeUntil, finalize } from 'rxjs/operators';
 
 interface ChapterItem {
   id: string;
@@ -31,7 +34,9 @@ interface ChapterItem {
     MatRadioModule,
     MatIconModule,
     MatSnackBarModule,
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule,
+    MatProgressBarModule,
+    MatDialogModule
   ],
   template: `
     <div class="cbse-chapters-container">
@@ -81,6 +86,7 @@ interface ChapterItem {
               name="chapterVariant"
               value="v1"
               [(ngModel)]="selectedVariant"
+              (change)="onVariantOrTypeChange()"
               class="count-input"
               [disabled]="!selectedChapterId"
             />
@@ -96,6 +102,7 @@ interface ChapterItem {
               name="chapterVariant"
               value="v2"
               [(ngModel)]="selectedVariant"
+              (change)="onVariantOrTypeChange()"
               class="count-input"
               [disabled]="!selectedChapterId"
             />
@@ -111,6 +118,7 @@ interface ChapterItem {
               name="chapterVariant"
               value="v3"
               [(ngModel)]="selectedVariant"
+              (change)="onVariantOrTypeChange()"
               class="count-input"
               [disabled]="!selectedChapterId"
             />
@@ -126,6 +134,7 @@ interface ChapterItem {
               name="chapterVariant"
               value="v4"
               [(ngModel)]="selectedVariant"
+              (change)="onVariantOrTypeChange()"
               class="count-input"
               [disabled]="!selectedChapterId"
             />
@@ -259,6 +268,7 @@ interface ChapterItem {
               name="quizType"
               value="mcq"
               [(ngModel)]="quizType"
+              (change)="onVariantOrTypeChange()"
               class="count-input"
             />
             <div class="pill-content">
@@ -273,6 +283,7 @@ interface ChapterItem {
               name="quizType"
               value="qa"
               [(ngModel)]="quizType"
+              (change)="onVariantOrTypeChange()"
               class="count-input"
             />
             <div class="pill-content">
@@ -287,6 +298,7 @@ interface ChapterItem {
               name="quizType"
               value="study"
               [(ngModel)]="quizType"
+              (change)="onVariantOrTypeChange()"
               class="count-input"
             />
             <div class="pill-content">
@@ -296,13 +308,45 @@ interface ChapterItem {
           </label>
         </div>
 
+        <!-- Progress Section -->
+        <div *ngIf="progressInfo && !isProgressLoading" class="progress-section">
+          <h3 class="progress-title">
+            <span>Question Progress</span>
+            <button mat-stroked-button color="warn" (click)="onResetProgress()" *ngIf="progressInfo.attemptedQuestions > 0">
+              Reset Progress
+            </button>
+          </h3>
+          
+          <div class="progress-stats-row">
+            <span>Attempted: <strong>{{ progressInfo.attemptedQuestions }}</strong></span>
+            <span>Remaining: <strong>{{ progressInfo.remainingQuestions }}</strong></span>
+          </div>
+          
+          <mat-progress-bar mode="determinate" [value]="progressInfo.percentageCompleted" class="progress-bar-styled"></mat-progress-bar>
+          
+          <div class="progress-footer-row">
+            <span>{{ progressInfo.percentageCompleted | number:'1.0-0' }}% Completed</span>
+            <span *ngIf="progressInfo.lastAttemptAt">Last attempt: {{ progressInfo.lastAttemptAt | date:'medium' }}</span>
+          </div>
+
+          <div *ngIf="progressInfo.completed" class="progress-completed-msg">
+            <strong>✅ Congratulations!</strong> You have completed all available questions for this chapter.
+            <br/>Click Reset Progress to practice again.
+          </div>
+        </div>
+        
+        <div *ngIf="isProgressLoading" class="progress-loading">
+           <mat-spinner diameter="30" class="spinner-centered"></mat-spinner>
+           <p>Fetching progress...</p>
+        </div>
+
         <!-- Action Buttons -->
         <div class="action-buttons">
           <button
             mat-raised-button
             color="primary"
             class="action-button start-quiz-button"
-            [disabled]="!selectedChapterId"
+            [disabled]="!selectedChapterId || (progressInfo && progressInfo.completed)"
             (click)="startQuiz()"
           >
             {{ quizType === 'study' ? '📖 Start Studying' : 'Start Quiz' }}
@@ -323,6 +367,8 @@ export class CbseChaptersComponent implements OnInit, OnDestroy {
   quizType: 'mcq' | 'qa' | 'study' = 'mcq';
   isLoading$ = new BehaviorSubject<boolean>(false);
   selectedChapterId: string | null = null;
+  progressInfo: ProgressInfo | null = null;
+  isProgressLoading = false;
   private destroy$ = new Subject<void>();
 
   get selectedChapters(): ChapterItem[] {
@@ -335,7 +381,9 @@ export class CbseChaptersComponent implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private router: Router,
     private snackBar: MatSnackBar,
-    private curriculumService: CurriculumService
+    private curriculumService: CurriculumService,
+    private progressService: ProgressService,
+    private dialog: MatDialog
   ) {}
 
   ngOnInit() {
@@ -388,6 +436,70 @@ export class CbseChaptersComponent implements OnInit, OnDestroy {
   onChapterSelect(chapter: ChapterItem) {
     this.selectedChapterId = chapter.id;
     this.selectedVariant = null;
+    this.progressInfo = null;
+  }
+
+  onVariantOrTypeChange() {
+    this.fetchProgress();
+  }
+
+  fetchProgress() {
+    if (!this.selectedChapterId || !this.selectedVariant || this.quizType === 'study') {
+      this.progressInfo = null;
+      return;
+    }
+    const selected = this.chapters.find(c => c.id === this.selectedChapterId);
+    if (!selected) return;
+
+    this.isProgressLoading = true;
+    this.progressService.getProgress(
+      'CBSE',
+      this.classNumber.toString(),
+      this.subjectDisplayName,
+      selected.name,
+      this.selectedVariant.toUpperCase(),
+      this.quizType.toUpperCase()
+    ).pipe(
+      takeUntil(this.destroy$),
+      finalize(() => this.isProgressLoading = false)
+    ).subscribe({
+      next: (progress) => {
+        this.progressInfo = progress;
+      },
+      error: (err) => {
+        console.error('Failed to fetch progress', err);
+      }
+    });
+  }
+
+  onResetProgress() {
+    if (!this.progressInfo) return;
+
+    const dialogRef = this.dialog.open(ResetProgressDialogComponent);
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.isProgressLoading = true;
+        this.progressService.resetProgress({
+          board: 'CBSE',
+          class: this.classNumber.toString(),
+          subject: this.subjectDisplayName,
+          chapter: this.progressInfo!.chapter,
+          version: this.progressInfo!.version,
+          questionType: this.progressInfo!.questionType
+        }).subscribe({
+          next: () => {
+            this.snackBar.open('Progress has been reset!', 'Close', { duration: 3000 });
+            this.fetchProgress();
+          },
+          error: (err) => {
+            console.error(err);
+            this.snackBar.open('Failed to reset progress', 'Close', { duration: 3000 });
+            this.isProgressLoading = false;
+          }
+        });
+      }
+    });
   }
 
   startQuiz() {

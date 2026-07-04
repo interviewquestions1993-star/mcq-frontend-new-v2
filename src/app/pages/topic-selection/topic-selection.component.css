@@ -402,16 +402,16 @@
 :host-context(.dark-theme) .concept-card.disabled,
 :host-context(.dark-theme) .custom-topics-card,
 :host-context(.dark-theme) .count-pill,
-:host-context(.dark-theme) .pill-content,
-:host-context(.dark-theme) .count-input:checked + .pill-content {
+:host-context(.dark-theme) .pill-content {
   background: #0f1724 !important;
   border-color: #374151 !important;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.55) !important;
 }
 
 :host-context(.dark-theme) .count-input:checked + .pill-content {
-  background: #111827 !important;
-  border-color: #475569 !important;
+  background: rgba(102, 126, 234, 0.25) !important;
+  border-color: #667eea !important;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.25) !important;
 }
 
 :host-context(.dark-theme) .count-input:checked + .pill-content .pill-label,

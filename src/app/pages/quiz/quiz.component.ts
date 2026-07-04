@@ -73,7 +73,7 @@ interface QuizQuestion extends MCQQuestion {
             <div class="options-container">
               <ng-container *ngIf="currentQuestion.options.length; else noOptions">
                 <div *ngFor="let option of currentQuestion.options; let i = index" class="option">
-                  <label class="option-label">
+                  <label class="option-label" [class.selected]="selectedAnswers[currentQuestion.localId] === getOptionLabel(i)">
                     <input
                       type="radio"
                       [name]="'question-' + currentQuestion.localId"
@@ -196,6 +196,13 @@ export class QuizComponent implements OnInit {
       next: (response: MCQResponse) => {
         if (response.status === 'chapter_not_available') {
           this.error = response.message || 'This chapter is not yet available. Please try another chapter.';
+          this.stopLoadingProgress();
+          this.isLoading = false;
+          return;
+        }
+
+        if (response.status === 'completed' || (response as any).completed === true) {
+          this.error = response.message || 'Congratulations! You have attempted all questions for this chapter.';
           this.stopLoadingProgress();
           this.isLoading = false;
           return;
