@@ -187,6 +187,11 @@ export class QaQuizComponent implements OnInit, OnDestroy {
   }
 
   finishQuiz() {
+    // If finished early, slice the questions to only include the ones seen so far
+    if (this.currentIndex < this.questions.length - 1) {
+      this.questions = this.questions.slice(0, this.currentIndex + 1);
+    }
+
     // Build unanswered question entries so every question appears in results
     const allQuestionsData = this.questions.map((q, i) => {
       const submitted = this.historyData.find(h => h.questionId === q.id);

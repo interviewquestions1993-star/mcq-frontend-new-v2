@@ -106,8 +106,9 @@
         <button
           class="qa-nav-btn qa-finish-btn"
           (click)="finishQuiz()"
-          *ngIf="currentIndex === questions.length - 1">
-          🏁 Finish Quiz
+          *ngIf="((currentIndex + 1) % 5 === 0 || currentIndex === questions.length - 1)">
+          <span *ngIf="currentIndex !== questions.length - 1">🏁 Finish Early</span>
+          <span *ngIf="currentIndex === questions.length - 1">🏁 Finish Quiz</span>
         </button>
       </div>
     </mat-card-actions>

@@ -123,13 +123,14 @@ interface QuizQuestion extends MCQQuestion {
           </button>
 
           <button
-            *ngIf="currentIndex === questions.length - 1 && !moreQuestionsLoading"
+            *ngIf="((currentIndex + 1) % 5 === 0 || currentIndex === questions.length - 1) && !moreQuestionsLoading"
             mat-raised-button
             color="accent"
             (click)="submitQuiz()"
             class="nav-button submit-button"
           >
-            Submit Quiz
+            <span *ngIf="currentIndex !== questions.length - 1">Submit Early</span>
+            <span *ngIf="currentIndex === questions.length - 1">Submit Quiz</span>
             <mat-icon>check_circle</mat-icon>
           </button>
         </div>
@@ -328,6 +329,11 @@ export class QuizComponent implements OnInit {
   }
 
   submitQuiz() {
+    // If submitted early, slice the questions to only include the ones seen so far
+    if (this.currentIndex < this.questions.length - 1) {
+      this.questions = this.questions.slice(0, this.currentIndex + 1);
+    }
+
     // Calculate score
     let score = 0;
     this.questions.forEach(question => {
