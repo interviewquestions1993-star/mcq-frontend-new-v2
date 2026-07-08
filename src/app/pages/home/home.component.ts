@@ -1,4 +1,4 @@
-﻿import { Component, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
@@ -24,37 +24,29 @@ import { MatSnackBarModule, MatSnackBar } from '@angular/material/snack-bar';
     <div class="home-container">
       <!-- Hero Section -->
       <div class="hero-section">
-        <h1 class="hero-title">CBSE Grade 8 Practice</h1>
-        <p class="hero-subtitle">Master CBSE Grade 8 with AI-Generated Questions</p>
+        <h1 class="hero-title">CBSE Practice Tests</h1>
+        <p class="hero-subtitle">Master CBSE Curriculum with AI-Generated Questions</p>
       </div>
 
-      <!-- CBSE Grade 8 CTA -->
+      <!-- CBSE CTA -->
       <div class="cbse-cta-section">
-        <h2>Start Your CBSE Grade 8 Quiz</h2>
-        <p>Select your subject and chapter to begin practicing with AI-generated questions.</p>
-        <button
-          mat-raised-button
-          color="primary"
-          class="cta-button"
-          (click)="startCBSEGrade8()"
-        >
-          📚 Select Subject & Chapter
-        </button>
+        <h2>Start Your CBSE Quiz</h2>
+        <p>Select your grade, subject and chapter to begin practicing with AI-generated questions.</p>
       </div>
 
-      <!-- CBSE Grade 8 Subjects -->
+      <!-- CBSE Grades -->
       <ng-template #subjectsDeferred @defer>
         <div class="subjects-section">
-          <h2>CBSE Grade 8 Subjects</h2>
+          <h2>CBSE Grades</h2>
           <div class="topics-grid">
             <div
-              *ngFor="let subject of cbseGrade8Subjects"
+              *ngFor="let g of cbseGrades"
               class="topic-card"
-              (click)="navigateToCBSESubject(subject)"
+              (click)="navigateToGrade(g.grade)"
             >
-              <div class="topic-icon">{{ subject.icon }}</div>
-              <h3>{{ subject.name }}</h3>
-              <p class="difficulty">{{ subject.chapters }} chapters</p>
+              <div class="topic-icon">{{ g.icon }}</div>
+              <h3>{{ g.name }}</h3>
+              <p class="difficulty">{{ g.description }}</p>
             </div>
           </div>
         </div>
@@ -66,9 +58,9 @@ import { MatSnackBarModule, MatSnackBar } from '@angular/material/snack-bar';
 
       <ng-template #subjectsPlaceholder>
         <div class="subjects-section subjects-placeholder">
-          <h2>CBSE Grade 8 Subjects</h2>
+          <h2>CBSE Grades</h2>
           <div class="topics-grid">
-            <div class="topic-card placeholder" *ngFor="let _ of placeholderTopics">
+            <div class="topic-card placeholder" *ngFor="let _ of [1, 2]">
               <div class="topic-icon"></div>
               <h3></h3>
               <p class="difficulty"></p>
@@ -77,21 +69,7 @@ import { MatSnackBarModule, MatSnackBar } from '@angular/material/snack-bar';
         </div>
       </ng-template>
 
-      <!-- Other Topics Section -->
-      <div class="other-topics-section">
-        <h2>Other Topics</h2>
-        <div class="topics-grid">
-          <div
-            *ngFor="let topic of genericTopics"
-            class="topic-card"
-            (click)="navigateToTopic(topic)"
-          >
-            <div class="topic-icon">{{ topic.icon }}</div>
-            <h3>{{ topic.name }}</h3>
-            <p class="difficulty">Explore focused grammar practice</p>
-          </div>
-        </div>
-      </div>
+
 
       <!-- Features Section -->
       <div class="features-section">
@@ -134,18 +112,12 @@ export class HomeComponent implements OnInit {
   showTopics = false;
   placeholderTopics = Array(8);
 
-  cbseGrade8Subjects = [
-    { name: 'Science', icon: '🔬', chapters: 13, id: 'science' },
-    { name: 'Mathematics', icon: '🔢', chapters: 14, id: 'mathematics' },
-    { name: 'English', icon: '📖', chapters: 15, id: 'english' },
-    { name: 'Computer Science', icon: '💻', chapters: 11, id: 'computer-science' },
-    { name: 'Hindi', icon: '🗣️', chapters: 10, id: 'hindi' },
-    { name: 'Social Studies', icon: '🌍', chapters: 7, id: 'social-studies' }
+  cbseGrades = [
+    { grade: 3, name: 'CBSE Grade 3', icon: '🏫', description: 'Practice MCQs for Grade 3' },
+    { grade: 8, name: 'CBSE Grade 8', icon: '🏫', description: 'Practice MCQs for Grade 8' }
   ];
 
-  genericTopics = [
-    { name: 'English Grammar', icon: '✍️' }
-  ];
+
 
   // Security: List of banned words to prevent inappropriate content
   private bannedWords = [
@@ -174,29 +146,13 @@ export class HomeComponent implements OnInit {
     }
   }
 
-  startCBSEGrade8() {
-    this.router.navigate(['/cbse', '8', 'subjects']);
-  }
-
-  navigateToCBSESubject(subject: any) {
-    // Map to the curriculum subject IDs
-    const subjectMap: { [key: string]: string } = {
-      'science': 'science',
-      'mathematics': 'math',
-      'english': 'english',
-      'computer-science': 'computer-science',
-      'hindi': 'hindi',
-      'social-studies': 'social-studies'
-    };
-    const subjectKey = subjectMap[subject.id] || subject.id;
-    this.router.navigate(['/cbse', '8', 'subjects', subjectKey, 'chapters']);
+  navigateToGrade(grade: number) {
+    this.router.navigate(['/cbse', grade.toString(), 'subjects']);
   }
 
   viewPersistedMCQs() {
     this.router.navigate(['/persisted-mcqs']);
   }
 
-  navigateToTopic(topic: any) {
-    this.router.navigate(['/topics', topic.name]);
-  }
+
 }

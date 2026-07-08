@@ -147,19 +147,8 @@ export const NCERT_CURRICULUM: ClassCurriculum[] = [
         id: 'class3-evs',
         name: 'Environmental Studies (Looking Around)',
         chapters: [
-          { id: 'c3e-1', name: 'Poonam\'s Day Out', chapterNumber: 1 },
-          { id: 'c3e-2', name: 'The Plant Fairy', chapterNumber: 2 },
-          { id: 'c3e-3', name: 'Water', chapterNumber: 3 },
-          { id: 'c3e-4', name: 'Our Friends - Animals', chapterNumber: 4 },
-          { id: 'c3e-5', name: 'From Here to There', chapterNumber: 5 },
-          { id: 'c3e-6', name: 'Things We Make and Do', chapterNumber: 6 },
-          { id: 'c3e-7', name: 'Family and Friends', chapterNumber: 7 },
-          { id: 'c3e-8', name: 'Work and Play', chapterNumber: 8 },
-          { id: 'c3e-9', name: 'Good Habits, Safe Habits', chapterNumber: 9 },
-          { id: 'c3e-10', name: 'Food and Health', chapterNumber: 10 },
-          { id: 'c3e-11', name: 'Body Movements', chapterNumber: 11 },
-          { id: 'c3e-12', name: 'Air and Weather', chapterNumber: 12 },
-          { id: 'c3e-13', name: 'Festivals', chapterNumber: 13 },
+          { id: 'c3e-1', name: 'Food', chapterNumber: 1 },
+          { id: 'c3e-2', name: 'Introduction to Science', chapterNumber: 2 },
         ],
       },
       {
@@ -696,6 +685,16 @@ export const NCERT_CURRICULUM: ClassCurriculum[] = [
           { id: 'c8e-14', name: 'Magnifying Glass', chapterNumber: 14 },
           { id: 'c8e-15', name: 'Bibha Chowdhuri: The Beam of Light that Lit the Path for Women in Indian Science', chapterNumber: 15 },
         ],
+      },
+      {
+        id: 'class8-english-grammar',
+        name: 'English Grammar',
+        bookName: 'Grammar',
+        chapters: [
+          { id: 'c8eg-1', name: 'Letter Writing', chapterNumber: 1 },
+          { id: 'c8eg-2', name: 'Tenses', chapterNumber: 2 },
+          { id: 'c8eg-3', name: 'Verbs', chapterNumber: 3 }
+        ]
       },
       {
         id: 'class8-hindi',

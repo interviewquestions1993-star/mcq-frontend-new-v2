@@ -35,7 +35,8 @@ const SUBJECT_META: Record<string, { icon: string; description: string; displayN
   biology: { icon: '🧬', description: 'Advanced biology concepts', displayName: 'Biology' },
   'computer-science': { icon: '💻', description: 'Programming and digital literacy', displayName: 'Computer Science' },
   accountancy: { icon: '📈', description: 'Accounting principles and finance', displayName: 'Accountancy' },
-  'business-studies': { icon: '🏢', description: 'Business, management and entrepreneurship', displayName: 'Business Studies' }
+  'business-studies': { icon: '🏢', description: 'Business, management and entrepreneurship', displayName: 'Business Studies' },
+  'english-grammar': { icon: '✍️', description: 'English grammar rules and practice', displayName: 'English Grammar' }
 };
 
 @Component({
@@ -161,6 +162,6 @@ export class CbseSubjectsComponent implements OnInit, OnDestroy {
   }
 
   goBack() {
-    this.router.navigate(['/cbse']);
+    this.router.navigate(['/']);
   }
 }

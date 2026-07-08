@@ -540,6 +540,6 @@ export class CbseChaptersComponent implements OnInit, OnDestroy {
   }
 
   goBack() {
-    this.router.navigate(['/']);
+    this.router.navigate(['/cbse', this.classNumber.toString(), 'subjects']);
   }
 }
