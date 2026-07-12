@@ -643,6 +643,18 @@ export const NCERT_CURRICULUM: ClassCurriculum[] = [
         ]
       },
       {
+        id: 'class8-hindi-grammar',
+        name: 'Hindi Grammar',
+        bookName: 'Hindi Vyakaran',
+        chapters: [
+          { id: 'c8hg-1', name: 'भाषा, लिपि और व्याकरण', chapterNumber: 1 },
+          { id: 'c8hg-2', name: 'शब्द-रचना', chapterNumber: 2 },
+          { id: 'c8hg-3', name: 'विशेषण', chapterNumber: 3 },
+          { id: 'c8hg-4', name: 'वर्ण-विचार', chapterNumber: 4 },
+          { id: 'c8hg-5', name: 'मुहावरे और लोकोक्तियाँ', chapterNumber: 5 },
+        ]
+      },
+      {
         id: 'class8-science',
         name: 'Science',
         bookName: 'Curiosity',

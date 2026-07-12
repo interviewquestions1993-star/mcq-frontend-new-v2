@@ -36,7 +36,8 @@ const SUBJECT_META: Record<string, { icon: string; description: string; displayN
   'computer-science': { icon: '💻', description: 'Programming and digital literacy', displayName: 'Computer Science' },
   accountancy: { icon: '📈', description: 'Accounting principles and finance', displayName: 'Accountancy' },
   'business-studies': { icon: '🏢', description: 'Business, management and entrepreneurship', displayName: 'Business Studies' },
-  'english-grammar': { icon: '✍️', description: 'English grammar rules and practice', displayName: 'English Grammar' }
+  'english-grammar': { icon: '✍️', description: 'English grammar rules and practice', displayName: 'English Grammar' },
+  'hindi-grammar': { icon: '📙', description: 'Hindi grammar rules and practice', displayName: 'Hindi Grammar' }
 };
 
 @Component({
