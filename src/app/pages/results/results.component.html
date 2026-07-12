@@ -120,13 +120,16 @@
           <div class="answer-header qa-header">
             <span class="qa-question-num">Q{{ i + 1 }}</span>
             <h4 class="qa-question-text">{{ q.question }}</h4>
-            <span class="qa-marks-badge"
+            <span *ngIf="!q.failed" class="qa-marks-badge"
               [ngClass]="{
                 'marks-full':    q.marksAwarded >= q.maxMarks * 0.8,
                 'marks-partial': q.marksAwarded > 0 && q.marksAwarded < q.maxMarks * 0.8,
                 'marks-zero':    q.marksAwarded === 0
               }">
               {{ q.marksAwarded }}/{{ q.maxMarks }} marks
+            </span>
+            <span *ngIf="q.failed" class="qa-marks-badge marks-zero" style="background: #fee2e2; color: #ef4444;">
+              ⚠ Evaluation Failed
             </span>
           </div>
 
@@ -136,18 +139,18 @@
               <p class="qa-text">{{ q.userAnswer || '(not answered)' }}</p>
             </div>
 
-            <div class="qa-section model-ans" *ngIf="q.modelAnswer">
+            <div class="qa-section model-ans" *ngIf="q.modelAnswer && !q.failed">
               <p class="qa-label">📖 Model Answer</p>
               <p class="qa-text">{{ q.modelAnswer }}</p>
             </div>
 
-            <div class="qa-section feedback-ans">
+            <div class="qa-section feedback-ans" *ngIf="!q.failed">
               <p class="qa-label">💬 Feedback</p>
               <p class="qa-text">{{ q.feedback }}</p>
               <p *ngIf="q.evaluator" class="qa-text" style="margin-top: 8px;"><small style="color: #667eea; font-weight: 500;"><em>Evaluated by: {{ q.evaluator }}</em></small></p>
             </div>
 
-            <div class="qa-section explanation-ans" *ngIf="q.explanation">
+            <div class="qa-section explanation-ans" *ngIf="q.explanation && !q.failed">
               <p class="qa-label">📚 Explanation</p>
               <p class="qa-text">
                 {{ q.explanation }}
@@ -155,11 +158,20 @@
               </p>
             </div>
 
-            <div class="qa-stats-row">
+            <div class="qa-stats-row" *ngIf="!q.failed">
               <span class="qa-stat">🎯 Semantic: {{ (q.similarity * 100) | number:'1.0-0' }}%</span>
               <span class="qa-stat">🔑 Keywords: {{ q.keywordCoverage }}%</span>
               <span class="qa-stat qa-difficulty">{{ q.difficulty }}</span>
             </div>
+
+            <div class="qa-retry-section" *ngIf="q.failed" style="margin-top: 16px; text-align: right;">
+              <p style="color: #ef4444; font-weight: 500; font-size: 0.9rem; margin-bottom: 12px; text-align: left;">{{ q.feedback }}</p>
+              <button mat-raised-button color="warn" (click)="retryEvaluation(q)" [disabled]="retryingId === q.questionId">
+                <span *ngIf="retryingId !== q.questionId">🔄 Retry Evaluation</span>
+                <mat-spinner *ngIf="retryingId === q.questionId" diameter="20" color="accent" style="margin: 0 auto;"></mat-spinner>
+              </button>
+            </div>
+
           </div>
         </div>
       </div>

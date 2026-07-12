@@ -95,6 +95,16 @@ export class QAService {
     });
   }
 
+  submitAllAnswers(chapter: string, version: string, answers: {questionId: number, userAnswer: string}[], examId?: string): Observable<any> {
+    const apiUrl = `${this.getBaseUrl()}/api/qa/evaluate-batch`;
+    return this.http.post<any>(apiUrl, {
+      examId,
+      chapter,
+      version,
+      answers
+    });
+  }
+
   saveHistory(record: QAHistoryRecord): Observable<any> {
     const apiUrl = `${this.getBaseUrl()}/api/qa/history`;
     return this.http.post(apiUrl, record);

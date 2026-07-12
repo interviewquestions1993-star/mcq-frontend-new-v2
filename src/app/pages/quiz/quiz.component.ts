@@ -121,13 +121,14 @@ interface QuizQuestion extends MCQQuestion {
             <mat-icon *ngIf="!(currentIndex === questions.length - 1 && moreQuestionsLoading)">arrow_forward</mat-icon>
             <mat-spinner *ngIf="currentIndex === questions.length - 1 && moreQuestionsLoading" diameter="20"></mat-spinner>
           </button>
+        </div>
 
+        <div class="submit-action-container" *ngIf="((currentIndex + 1) % 5 === 0 || currentIndex === questions.length - 1) && !moreQuestionsLoading">
           <button
-            *ngIf="((currentIndex + 1) % 5 === 0 || currentIndex === questions.length - 1) && !moreQuestionsLoading"
             mat-raised-button
             color="accent"
             (click)="submitQuiz()"
-            class="nav-button submit-button"
+            class="large-submit-button"
           >
             <span *ngIf="currentIndex !== questions.length - 1">Submit Early</span>
             <span *ngIf="currentIndex === questions.length - 1">Submit Quiz</span>

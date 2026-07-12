@@ -88,12 +88,20 @@
       </div>
       <div class="nav-right">
         <button
+          *ngIf="pendingSubmitIndex !== currentIndex && !isAnswerSubmitted[currentIndex]"
           class="qa-nav-btn qa-submit-btn"
           (click)="submitAnswer()"
-          *ngIf="!isAnswerSubmitted[currentIndex]"
           [disabled]="!userAnswers[currentIndex]?.trim() || (isSubmitting$ | async)">
           <span *ngIf="!(isSubmitting$ | async)">✔ Submit Answer</span>
           <mat-spinner diameter="20" *ngIf="isSubmitting$ | async"></mat-spinner>
+        </button>
+
+        <button
+          *ngIf="pendingSubmitIndex === currentIndex && !isAnswerSubmitted[currentIndex]"
+          class="qa-nav-btn qa-submit-btn cancel-btn"
+          (click)="cancelSubmit()"
+          style="background: #ef4444; color: white;">
+          <span>❌ Cancel ({{ submitCountdown }}s)</span>
         </button>
 
         <button
@@ -105,14 +113,28 @@
 
         <button
           class="qa-nav-btn qa-finish-btn"
-          (click)="finishQuiz()"
-          *ngIf="((currentIndex + 1) % 5 === 0 || currentIndex === questions.length - 1)">
-          <span *ngIf="currentIndex !== questions.length - 1">🏁 Finish Early</span>
-          <span *ngIf="currentIndex === questions.length - 1">🏁 Finish Quiz</span>
+          (click)="submitAllAndFinish()"
+          *ngIf="((currentIndex + 1) % 5 === 0 || currentIndex === questions.length - 1)"
+          [disabled]="isBatchSubmitting">
+          <span *ngIf="currentIndex !== questions.length - 1">🏁 Submit All & Finish Early</span>
+          <span *ngIf="currentIndex === questions.length - 1">🏁 Submit All & Finish Quiz</span>
         </button>
       </div>
     </mat-card-actions>
   </mat-card>
+</div>
+
+<!-- Batch Loading Overlay -->
+<div class="batch-loading-overlay" *ngIf="isBatchSubmitting">
+  <div class="batch-loading-card">
+    <mat-spinner diameter="60" color="accent"></mat-spinner>
+    <h2>Evaluating your answers...</h2>
+    <div class="batch-progress">
+      <span class="completed-text">Completed:</span>
+      <span class="count-text">{{ batchCompletedCount }} / {{ batchTotalCount }}</span>
+    </div>
+    <p class="warning-text">Please don't close this page.</p>
+  </div>
 </div>
 
 <div class="loading-state" *ngIf="isLoading$ | async">
@@ -120,7 +142,7 @@
   <p>Loading your descriptive quiz...</p>
 </div>
 
-<div class="error-state" *ngIf="error && !(isLoading$ | async)">
+<div class="error-state" *ngIf="error && !(isLoading$ | async) && !isBatchSubmitting">
   <mat-card class="error-card">
     <div class="error-content">
       <mat-icon class="error-icon">error_outline</mat-icon>

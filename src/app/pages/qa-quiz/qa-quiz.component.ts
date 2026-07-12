@@ -39,6 +39,12 @@ export class QaQuizComponent implements OnInit, OnDestroy {
   isLoading$ = new BehaviorSubject<boolean>(true);
   isSubmitting$ = new BehaviorSubject<boolean>(false);
   
+  // Timer State
+  pendingSubmitIndex: number = -1;
+  submitCountdown: number = 0;
+  private submitTimerRef: any = null;
+  private currentSubmitSubscription: any = null;
+  
   // Evaluation state
   isAnswerSubmitted: boolean[] = [];
   evaluationResults: (QAEvaluateResponse | null)[] = [];
@@ -131,11 +137,22 @@ export class QaQuizComponent implements OnInit, OnDestroy {
   }
 
   submitAnswer() {
+    this.cancelSubmit();
+
     if (!this.userAnswers[this.currentIndex]?.trim() || !this.currentQuestion) return;
-    
+
+    this.pendingSubmitIndex = this.currentIndex;
+    this.submitCountdown = 20;
     this.isSubmitting$.next(true);
-    
-    this.qaService.submitAnswer(
+
+    this.submitTimerRef = setInterval(() => {
+      this.submitCountdown--;
+      if (this.submitCountdown <= 0) {
+        this.cancelSubmit(); // Auto cancel if it takes too long
+      }
+    }, 1000);
+
+    this.currentSubmitSubscription = this.qaService.submitAnswer(
       this.currentQuestion.id,
       this.chapter,
       this.version,
@@ -143,18 +160,20 @@ export class QaQuizComponent implements OnInit, OnDestroy {
     ).pipe(takeUntil(this.destroy$))
      .subscribe({
         next: (response) => {
-          this.evaluationResults[this.currentIndex] = response;
-          this.isAnswerSubmitted[this.currentIndex] = true;
-          this.isSubmitting$.next(false);
+          const indexToSubmit = this.currentIndex;
+          this.clearSubmitTimer();
+          
+          this.evaluationResults[indexToSubmit] = response;
+          this.isAnswerSubmitted[indexToSubmit] = true;
           
           this.totalMarksAwarded += response.marksAwarded;
           this.totalMaxMarks += response.maxMarks;
           
           this.historyData.push({
-            questionId: this.currentQuestion!.id,
-            question: this.currentQuestion!.question,
-            difficulty: this.currentQuestion!.difficulty,
-            userAnswer: this.userAnswers[this.currentIndex],
+            questionId: this.questions[indexToSubmit].id,
+            question: this.questions[indexToSubmit].question,
+            difficulty: this.questions[indexToSubmit].difficulty,
+            userAnswer: this.userAnswers[indexToSubmit],
             marksAwarded: response.marksAwarded,
             maxMarks: response.maxMarks,
             similarity: response.similarity,
@@ -169,21 +188,172 @@ export class QaQuizComponent implements OnInit, OnDestroy {
         },
         error: (err) => {
           console.error('Failed to evaluate answer', err);
-          this.isSubmitting$.next(false);
+          this.clearSubmitTimer();
         }
       });
   }
 
+  clearSubmitTimer() {
+    if (this.submitTimerRef) {
+      clearInterval(this.submitTimerRef);
+      this.submitTimerRef = null;
+    }
+    this.pendingSubmitIndex = -1;
+    this.currentSubmitSubscription = null;
+    this.isSubmitting$.next(false);
+  }
+
+  cancelSubmit() {
+    if (this.currentSubmitSubscription) {
+      this.currentSubmitSubscription.unsubscribe();
+    }
+    this.clearSubmitTimer();
+  }
+
   previousQuestion() {
+    this.cancelSubmit();
     if (this.currentIndex > 0) {
       this.currentIndex--;
     }
   }
 
   nextQuestion() {
+    this.cancelSubmit();
     if (this.currentIndex < this.questions.length - 1) {
       this.currentIndex++;
     }
+  }
+
+  isBatchSubmitting: boolean = false;
+  batchCompletedCount: number = 0;
+  batchTotalCount: number = 0;
+  batchProgressInterval: any;
+
+  submitAllAndFinish() {
+    const unsubmittedAnswers: {questionId: number, userAnswer: string}[] = [];
+    
+    this.questions.forEach((q, i) => {
+      if (!this.isAnswerSubmitted[i] && this.userAnswers[i] && this.userAnswers[i].trim()) {
+        unsubmittedAnswers.push({
+          questionId: q.id,
+          userAnswer: this.userAnswers[i].trim()
+        });
+      }
+    });
+
+    if (unsubmittedAnswers.length === 0) {
+      this.finishQuiz();
+      return;
+    }
+
+    this.isBatchSubmitting = true;
+    this.batchTotalCount = unsubmittedAnswers.length;
+    this.batchCompletedCount = 0;
+
+    // Simulate progress while waiting for the single API response
+    // Assuming ~10-15s per question, max concurrent 3, so roughly ~5s per question average throughput
+    this.batchProgressInterval = setInterval(() => {
+      if (this.batchCompletedCount < this.batchTotalCount - 1) {
+        this.batchCompletedCount++;
+      }
+    }, 5000);
+
+    const examId = "exam_" + new Date().getTime(); // Generate a simple examId if needed
+
+    this.qaService.submitAllAnswers(this.chapter, this.version, unsubmittedAnswers, examId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (response) => {
+          clearInterval(this.batchProgressInterval);
+          this.batchCompletedCount = this.batchTotalCount;
+
+          if (response && response.success) {
+            // Process successful results
+            if (response.results) {
+              response.results.forEach((res: any) => {
+                const idx = this.questions.findIndex(q => q.id === res.questionId);
+                if (idx !== -1) {
+                  this.evaluationResults[idx] = res;
+                  this.isAnswerSubmitted[idx] = true;
+                  
+                  this.totalMarksAwarded += res.marksAwarded;
+                  this.totalMaxMarks += res.maxMarks;
+                  
+                  this.historyData.push({
+                    questionId: res.questionId,
+                    question: this.questions[idx].question,
+                    difficulty: this.questions[idx].difficulty,
+                    userAnswer: this.userAnswers[idx],
+                    marksAwarded: res.marksAwarded,
+                    maxMarks: res.maxMarks,
+                    similarity: res.similarity,
+                    keywordCoverage: res.keywordCoverage,
+                    feedback: res.feedback,
+                    modelAnswer: res.modelAnswer,
+                    explanation: res.explanation,
+                    page_number: res.page_number,
+                    evaluator: res.evaluator,
+                    timeTaken: res.evaluationTimeMs || 0
+                  });
+                }
+              });
+            }
+            
+            // Process failed results by adding a dummy evaluation so it shows in the UI
+            if (response.failed) {
+              response.failed.forEach((fail: any) => {
+                const idx = this.questions.findIndex(q => q.id === fail.questionId);
+                if (idx !== -1) {
+                  this.evaluationResults[idx] = {
+                    marksAwarded: 0,
+                    maxMarks: this.questions[idx].marks,
+                    similarity: 0,
+                    keywordCoverage: 0,
+                    feedback: `Evaluation Failed: ${fail.error || 'Timeout'}`,
+                    missingKeywords: [],
+                    evaluator: 'Error',
+                    modelAnswer: 'N/A',
+                    explanation: 'N/A',
+                    page_number: ''
+                  };
+                  this.isAnswerSubmitted[idx] = true;
+                  
+                  this.historyData.push({
+                    questionId: fail.questionId,
+                    question: this.questions[idx].question,
+                    difficulty: this.questions[idx].difficulty,
+                    userAnswer: this.userAnswers[idx],
+                    marksAwarded: 0,
+                    maxMarks: this.questions[idx].marks,
+                    similarity: 0,
+                    keywordCoverage: 0,
+                    feedback: `Evaluation Failed: ${fail.error || 'Timeout'}`,
+                    modelAnswer: 'N/A',
+                    explanation: 'N/A',
+                    page_number: '',
+                    evaluator: 'Error',
+                    timeTaken: 0,
+                    failed: true
+                  });
+                }
+              });
+            }
+          }
+
+          setTimeout(() => {
+            this.isBatchSubmitting = false;
+            this.finishQuiz();
+          }, 1000);
+        },
+        error: (err) => {
+          clearInterval(this.batchProgressInterval);
+          console.error('Failed to evaluate batch', err);
+          this.isBatchSubmitting = false;
+          // Optionally still finish the quiz or show error
+          alert('Batch evaluation failed completely. Moving to results.');
+          this.finishQuiz();
+        }
+      });
   }
 
   finishQuiz() {
@@ -205,7 +375,7 @@ export class QaQuizComponent implements OnInit, OnDestroy {
         maxMarks: q.marks,
         similarity: 0,
         keywordCoverage: 0,
-        feedback: 'Not submitted',
+        feedback: this.userAnswers[i]?.trim() ? 'Not evaluated' : 'Not submitted',
         modelAnswer: '',
         explanation: '',
         page_number: q.page_number || '',
@@ -229,8 +399,6 @@ export class QaQuizComponent implements OnInit, OnDestroy {
       percentage: Math.round(percentage),
       completedAt: new Date().toISOString()
     };
-
-
 
     // Store rich results in sessionStorage for results page
     const qaResults = {
