@@ -437,7 +437,13 @@ export class TopicSelectionComponent implements OnInit {
       'English Grammar': [
         { id: '1', name: 'Letter Writing', description: 'Formal and informal letter structure and practice', selected: false },
         { id: '2', name: 'Tenses', description: 'Present, past, and future tense rules and usage', selected: false },
-        { id: '3', name: 'Verbs', description: 'Verb forms, agreement, and verb types', selected: false }
+        { id: '3', name: 'Verbs', description: 'Verb forms, agreement, and verb types', selected: false },
+        { id: '4', name: 'Adjectives', description: 'Descriptive words, comparatives, and superlatives', selected: false },
+        { id: '5', name: 'Adverbs', description: 'Modifying verbs, adjectives, and other adverbs', selected: false },
+        { id: '6', name: 'Punctuation', description: 'Correct usage of commas, periods, quotation marks, etc.', selected: false },
+        { id: '7', name: 'Question Tags', description: 'Short questions added to the end of a statement', selected: false },
+        { id: '8', name: 'Determiners', description: 'Words placed in front of a noun to specify quantity or clarification', selected: false },
+        { id: '9', name: 'Articles', description: 'Definite and indefinite articles (a, an, the)', selected: false }
       ],
       'Machine Learning': [
         { id: '1', name: 'Supervised Learning', description: 'Learning from labeled data', selected: false },

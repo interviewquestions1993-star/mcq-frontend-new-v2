@@ -704,7 +704,13 @@ export const NCERT_CURRICULUM: ClassCurriculum[] = [
         chapters: [
           { id: 'c8eg-1', name: 'Letter Writing', chapterNumber: 1 },
           { id: 'c8eg-2', name: 'Tenses', chapterNumber: 2 },
-          { id: 'c8eg-3', name: 'Verbs', chapterNumber: 3 }
+          { id: 'c8eg-3', name: 'Verbs', chapterNumber: 3 },
+          { id: 'c8eg-4', name: 'Adjectives', chapterNumber: 4 },
+          { id: 'c8eg-5', name: 'Adverbs', chapterNumber: 5 },
+          { id: 'c8eg-6', name: 'Punctuation', chapterNumber: 6 },
+          { id: 'c8eg-7', name: 'Question Tags', chapterNumber: 7 },
+          { id: 'c8eg-8', name: 'Determiners', chapterNumber: 8 },
+          { id: 'c8eg-9', name: 'Articles', chapterNumber: 9 }
         ]
       },
       {
