@@ -7,6 +7,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTabsModule } from '@angular/material/tabs';
 import { QAService } from '../../services/qa.service';
+import { EmailService } from '../../services/email.service';
 
 interface QuizResults {
   topic: string;
@@ -38,8 +39,9 @@ export class ResultsComponent implements OnInit {
   chapter: string = '';
   version: string = '';
   retryingId: number | null = null;
+  emailStatus: 'idle' | 'sending' | 'success' | 'error' = 'idle';
 
-  constructor(private router: Router, private qaService: QAService) {}
+  constructor(private router: Router, private qaService: QAService, private emailService: EmailService) {}
 
   ngOnInit() {
     const resultsStr = sessionStorage.getItem('quizResults');
@@ -58,7 +60,24 @@ export class ResultsComponent implements OnInit {
       if (this.results && (!Number.isFinite(this.results.percentage) || this.results.percentage < 0 || this.results.percentage > 100)) {
         this.results.percentage = this.calculatePercentage(this.results.score, this.results.total);
       }
+      
+      // Send email results
+      this.sendEmailNotification();
     }
+  }
+
+  private sendEmailNotification() {
+    if (!this.results) return;
+    this.emailStatus = 'sending';
+    this.emailService.sendEmailResults(this.results).subscribe({
+      next: (res) => {
+        this.emailStatus = 'success';
+      },
+      error: (err) => {
+        console.error('Failed to send email:', err);
+        this.emailStatus = 'error';
+      }
+    });
   }
 
   retryEvaluation(q: any) {

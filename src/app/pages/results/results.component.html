@@ -21,6 +21,11 @@
           🔄 Retake Quiz
         </button>
       </div>
+      <div class="email-status-container" style="margin-top: 15px; text-align: right; font-size: 0.9rem;">
+        <span *ngIf="emailStatus === 'sending'" style="color: #666;"><mat-spinner diameter="16" style="display:inline-block; vertical-align: middle; margin-right: 5px;"></mat-spinner> Sending results to email...</span>
+        <span *ngIf="emailStatus === 'success'" style="color: #27ae60;">✅ Results sent to email successfully!</span>
+        <span *ngIf="emailStatus === 'error'" style="color: #e74c3c;">❌ Failed to send email.</span>
+      </div>
     </div>
 
     <div class="summary-card" [ngClass]="'score-' + getGrade(results.percentage)">
