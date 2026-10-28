@@ -130,6 +130,11 @@ export const NCERT_CURRICULUM: ClassCurriculum[] = [
         chapters: [
           { id: 'c3-1', name: 'Numbers', chapterNumber: 1 },
           { id: 'c3-2', name: 'Addition', chapterNumber: 2 },
+          { id: 'c3-3', name: 'Subtraction', chapterNumber: 3 },
+          { id: 'c3-4', name: 'Estimation', chapterNumber: 4 },
+          { id: 'c3-5', name: 'Multiplication', chapterNumber: 5 },
+          { id: 'c3-6', name: 'Geometry', chapterNumber: 6 },
+          { id: 'c3-7', name: 'Patterns', chapterNumber: 7 },
         ],
       },
       {
@@ -138,6 +143,12 @@ export const NCERT_CURRICULUM: ClassCurriculum[] = [
         chapters: [
           { id: 'c3e-1', name: 'Food', chapterNumber: 1 },
           { id: 'c3e-2', name: 'Introduction to Science', chapterNumber: 2 },
+          { id: 'c3e-3', name: 'Birds', chapterNumber: 3 },
+          { id: 'c3e-4', name: 'Food we get from plants', chapterNumber: 4 },
+          { id: 'c3e-5', name: 'Food habits of Animals', chapterNumber: 5 },
+          { id: 'c3e-6', name: 'Natural resources', chapterNumber: 6 },
+          { id: 'c3e-7', name: 'Shelter', chapterNumber: 7 },
+          { id: 'c3e-8', name: 'Air', chapterNumber: 8 },
         ],
       },
       {
@@ -146,6 +157,12 @@ export const NCERT_CURRICULUM: ClassCurriculum[] = [
         chapters: [
           { id: 'c3en-1', name: 'The cat and the Man', chapterNumber: 1 },
           { id: 'c3en-2', name: 'Birds in the sky', chapterNumber: 2 },
+          { id: 'c3en-3', name: 'The Good Samaritan', chapterNumber: 3 },
+          { id: 'c3en-4', name: 'Bed in Summer', chapterNumber: 4 },
+          { id: 'c3en-5', name: 'Always tell the truth', chapterNumber: 5 },
+          { id: 'c3en-6', name: 'How they sleep', chapterNumber: 6 },
+          { id: 'c3en-7', name: 'Birbal shortens the Road', chapterNumber: 7 },
+          { id: 'c3en-8', name: 'Punyakoti the cow', chapterNumber: 8 },
         ],
       },
       {
@@ -162,6 +179,8 @@ export const NCERT_CURRICULUM: ClassCurriculum[] = [
         chapters: [
           { id: 'c3cs-1', name: 'AI AROUND US & SMART MACHINES', chapterNumber: 1 },
           { id: 'c3cs-2', name: 'Data Teaching Machines to Learn', chapterNumber: 2 },
+          { id: 'c3cs-3', name: 'Operating System and Windows 11', chapterNumber: 3 },
+          { id: 'c3cs-4', name: 'Fun with Paint 3D', chapterNumber: 4 },
         ],
       },
       {
@@ -171,6 +190,10 @@ export const NCERT_CURRICULUM: ClassCurriculum[] = [
         chapters: [
           { id: 'c3eg-1', name: 'Pronouns', chapterNumber: 1 },
           { id: 'c3eg-2', name: 'Nouns', chapterNumber: 2 },
+          { id: 'c3eg-3', name: 'Verbs', chapterNumber: 3 },
+          { id: 'c3eg-4', name: 'Tenses', chapterNumber: 4 },
+          { id: 'c3eg-5', name: 'Articles', chapterNumber: 5 },
+          { id: 'c3eg-6', name: 'Composition', chapterNumber: 6 },
         ]
       },
     ],
